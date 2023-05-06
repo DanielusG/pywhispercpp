@@ -28,7 +28,7 @@ class Segment:
     """
     A small class representing a transcription segment
     """
-    def __init__(self, t0: int, t1: int, text: str):
+    def __init__(self, t0: int, t1: int, text: str, listTokenText: list[str], listTokenP: list[float]):
         """
         :param t0: start time
         :param t1: end time
@@ -37,7 +37,8 @@ class Segment:
         self.t0 = t0
         self.t1 = t1
         self.text = text
-
+        self.listTokenText = listTokenText
+        self.listTokenP = listTokenP
     def __str__(self):
         return f"t0={self.t0}, t1={self.t1}, text={self.text}"
 
@@ -150,7 +151,14 @@ class Model:
             t0 = pw.whisper_full_get_segment_t0(ctx, i)
             t1 = pw.whisper_full_get_segment_t1(ctx, i)
             text = pw.whisper_full_get_segment_text(ctx, i)
-            res.append(Segment(t0, t1, text.strip()))
+            listTokenText = []
+            listTokenP = []
+            for j in range(pw.whisper_full_n_tokens(ctx, i)):
+                token_text = pw.whisper_full_get_token_text(ctx, i, j)
+                token_p = pw.whisper_full_get_token_p(ctx, i, j)
+                listTokenText.append(token_text)
+                listTokenP.append(token_p)
+            res.append(Segment(t0, t1, text.strip(), listTokenText, listTokenP))
         return res
 
     def get_params(self) -> dict:
