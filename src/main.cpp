@@ -280,7 +280,7 @@ float whisper_full_get_token_p_wrapper(struct whisper_context_wrapper * ctx, int
 
 // callbacks mechanism
 
-void _new_segment_callback(struct whisper_context * ctx, int n_new, void * user_data){
+void _new_segment_callback(struct whisper_context * ctx, struct whisper_state * state, int n_new, void * user_data){
     struct whisper_context_wrapper ctx_w;
     ctx_w.ptr = ctx;
     // call the python callback
@@ -293,7 +293,7 @@ void assign_new_segment_callback(struct whisper_full_params *params, py::functio
     py_new_segment_callback = f;
 };
 
-bool _encoder_begin_callback(struct whisper_context * ctx, void * user_data){
+bool _encoder_begin_callback(struct whisper_context * ctx, struct whisper_state * state, void * user_data){
     struct whisper_context_wrapper ctx_w;
     ctx_w.ptr = ctx;
     // call the python callback
@@ -307,12 +307,7 @@ void assign_encoder_begin_callback(struct whisper_full_params *params, py::funct
     py_encoder_begin_callback = f;
 }
 
-void _logits_filter_callback(
-        struct whisper_context * ctx,
-        const whisper_token_data * tokens,
-        int   n_tokens,
-        float * logits,
-        void * user_data){
+void _logits_filter_callback(whisper_context *ctx, whisper_state *state, const whisper_token_data *tokens, int n_tokens, float *logits, void *user_data){
     struct whisper_context_wrapper ctx_w;
     ctx_w.ptr = ctx;
     // call the python callback
