@@ -13,8 +13,6 @@ file (GLOB headers "whisper.cpp/ggml-cuda.h" "whisper.cpp/ggml.h")
 file (GLOB cuda_sources "whisper.cpp/ggml-cuda.cu")
 
 
-
-
 pybind11_add_module(_pywhispercpp
 	${CPP_FILES}
 	${headers}
@@ -111,7 +109,7 @@ cmake_minimum_required(VERSION 3.17)
 find_package(CUDAToolkit)
 
 if (CUDAToolkit_FOUND)
-    set(WHISPER_CUBLAS=1)
+    set(WHISPER_CUBLAS 1)
     message(STATUS "cuBLAS found")
     target_link_libraries(_pywhispercpp PRIVATE cublas)
     enable_language(CUDA)

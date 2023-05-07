@@ -551,7 +551,7 @@ PYBIND11_MODULE(_pywhispercpp, m) {
 
 
 #ifdef VERSION_INFO
-    m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
+    m.attr("__version__") = "dev";
 #else
     m.attr("__version__") = "dev";
 #endif
