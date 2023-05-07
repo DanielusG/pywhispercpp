@@ -6,14 +6,24 @@ add_subdirectory(whisper.cpp)
 
 # file (GLOB CPP_FILES "whisper.cpp/*.cpp" "whisper.cpp/examples/*.cpp")
 file (GLOB CPP_FILES "whisper.cpp/*.cpp")
-file (GLOB C_FILES "whisper.cpp/*.c")
+file (GLOB C_FILES "whisper.cpp/ggml.c")
+file (GLOB H_FILES "whisper.cpp/whisper.h")
+
+file (GLOB headers "whisper.cpp/ggml-cuda.h" "whisper.cpp/ggml.h")
+file (GLOB cuda_sources "whisper.cpp/ggml-cuda.cu")
+
+
 
 
 pybind11_add_module(_pywhispercpp
 	${CPP_FILES}
-	${C_FILES}
+	${headers}
+    ${H_FILES}
+    ${cuda_sources}
+    ${C_FILES}
 	src/main.cpp
 )
+# add pybind11 link library -lcublas
 
 # pybind11_add_module(pywhispercpp  src/main.cpp)
 
@@ -22,7 +32,8 @@ pybind11_add_module(_pywhispercpp
 target_compile_definitions(_pywhispercpp
                            PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})
 # ---------------------------------------------------------------------------------------------
-
+set_property(TARGET _pywhispercpp PROPERTY CUDA_ARCHITECTURES OFF)
+set_property(TARGET _pywhispercpp PROPERTY CUDA_SELECT_NVCC_ARCH_FLAGS "Auto")
 
 option(WHISPER_SUPPORT_SDL2            "whisper: support for libSDL2" OFF)
 
@@ -36,7 +47,7 @@ else()
 endif()
 
 option(WHISPER_PERF                    "whisper: enable perf timings" OFF)
-
+option(WHISPER_SUPPORT_CUBLAS    "whisper: support for CuBLAS" ON)
 
 
 # sanitizers
@@ -95,7 +106,28 @@ if (WHISPER_SUPPORT_OPENBLAS)
         message(WARNING "OpenBLAS not found")
     endif()
 endif()
+cmake_minimum_required(VERSION 3.17)
 
+find_package(CUDAToolkit)
+
+if (CUDAToolkit_FOUND)
+    set(WHISPER_CUBLAS=1)
+    message(STATUS "cuBLAS found")
+    target_link_libraries(_pywhispercpp PRIVATE cublas)
+    enable_language(CUDA)
+
+    set(GGML_CUDA_SOURCES "whisper.cpp/ggml-cuda.cu" "whisper.cpp/ggml-cuda.h")
+    add_compile_definitions(GGML_USE_CUBLAS)
+
+    if (WHISPER_STATIC)
+        set(WHISPER_EXTRA_LIBS ${WHISPER_EXTRA_LIBS} CUDA::cudart_static CUDA::cublas_static CUDA::cublasLt_static)
+    else()
+        set(WHISPER_EXTRA_LIBS ${WHISPER_EXTRA_LIBS} CUDA::cudart CUDA::cublas CUDA::cublasLt)
+    endif()
+
+else()
+    message(WARNING "cuBLAS not found")
+endif()
 # compiler flags
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
