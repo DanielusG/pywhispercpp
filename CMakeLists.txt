@@ -108,7 +108,7 @@ cmake_minimum_required(VERSION 3.17)
 
 find_package(CUDAToolkit)
 
-if (CUDAToolkit_FOUND)
+if (false)
     set(WHISPER_CUBLAS 1)
     message(STATUS "cuBLAS found")
     target_link_libraries(_pywhispercpp PRIVATE cublas)
